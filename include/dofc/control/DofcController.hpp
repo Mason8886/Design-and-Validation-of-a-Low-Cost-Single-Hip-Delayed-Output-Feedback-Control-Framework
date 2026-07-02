@@ -15,7 +15,7 @@ enum class FeedbackLaw {
 };
 
 struct DofcConfig {
-  double feedback_gain{4.0};
+  double feedback_gain{10.0};
   double delay_s{0.25};
   double max_supported_delay_s{1.5};
   FeedbackSignal signal{FeedbackSignal::Angle};

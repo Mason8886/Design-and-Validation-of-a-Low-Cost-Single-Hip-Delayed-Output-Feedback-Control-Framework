@@ -3,9 +3,8 @@
 namespace dofc {
 
 struct SingleHipModelConfig {
-  static SingleHipModelConfig fullScaleWalking();
-  static SingleHipModelConfig legacyScaled();
-
+  // Tuned for a simplified full-scale single-hip walking simulation driven by
+  // a 60 Nm sinusoidal biological hip torque input.
   double inertia_kg_m2{1.2};
   double damping_nm_s_per_rad{12.0};
   double passive_stiffness_nm_per_rad{100.0};

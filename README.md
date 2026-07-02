@@ -16,13 +16,15 @@
 
 这意味着 `6 Nm` 不是用来复现完整人体髋关节力矩，也不是要替代人的髋关节。它表示低成本原型机的保守部分助力上限。人体生物髋转矩仍然是主要驱动，外骨骼只提供小比例辅助。
 
+这仍然是 simulation framework，不是硬件验证结果。`6 Nm` 必须在后续硬件阶段结合具体电机、减速机构、驱动器、电源、皮带传动、串联弹性元件和 3D 打印结构进行验证。
+
 单髋模型也已经重新定标到更接近全尺度步行响应：
 
 - inertia: `1.2 kg·m²`
 - damping: `12 Nm·s/rad`
 - passive stiffness: `100 Nm/rad`
 
-在默认 60 Nm 正弦人体髋转矩输入下，仿真髋角保持在合理步行范围内，而不会像旧 toy model 那样因为输入放大而数值发散。
+在默认 60 Nm 正弦人体髋转矩输入下，仿真髋角保持在合理步行范围内，适合作为低助力控制策略的 preliminary simulation。
 
 ## What Is Included
 
@@ -82,6 +84,8 @@ ctest --test-dir build --output-on-failure
 ```powershell
 .\build\Release\parameter_sweep.exe
 ```
+
+参数扫描 CSV 使用 `safe`、`useful`、`recommended` 三个分类。`safe` 表示参数没有超过安全筛选阈值，`useful` 表示助力比例不是接近零，`recommended` 表示两者同时满足。
 
 画图：
 

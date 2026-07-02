@@ -88,6 +88,7 @@ int main(int argc, char** argv) {
   const std::string law = readStringArg(args, "--law", "pure-delay");
   const std::string signal = readStringArg(args, "--signal", "angle");
 
+  // The default model configuration is tuned for the 60 Nm full-scale walking input.
   dofc::SingleHipModel model;
   dofc::DofcController controller({
       gain,

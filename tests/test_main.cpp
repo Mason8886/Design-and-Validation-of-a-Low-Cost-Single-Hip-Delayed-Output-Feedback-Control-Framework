@@ -6,6 +6,7 @@ void testDelayBufferInterpolation();
 void testDofcPureDelay();
 void testFullScaleHumanTorqueModelResponse();
 void testTorqueLimiterMagnitudeAndRate();
+void testDefaultPartialAssistanceTorqueLimit();
 void testSeriesElasticEstimator();
 
 int main() {
@@ -13,6 +14,7 @@ int main() {
   testDofcPureDelay();
   testFullScaleHumanTorqueModelResponse();
   testTorqueLimiterMagnitudeAndRate();
+  testDefaultPartialAssistanceTorqueLimit();
   testSeriesElasticEstimator();
 
   if (test::failures == 0) {

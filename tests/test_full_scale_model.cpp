@@ -11,7 +11,7 @@ void testFullScaleHumanTorqueModelResponse() {
   constexpr double kDurationS = 16.0;
   constexpr double kDtS = 0.002;
 
-  dofc::SingleHipModel model(dofc::SingleHipModelConfig::fullScaleWalking());
+  dofc::SingleHipModel model;
 
   double max_abs_angle_rad = 0.0;
   for (double time_s = 0.0; time_s <= kDurationS; time_s += kDtS) {
@@ -26,7 +26,7 @@ void testFullScaleHumanTorqueModelResponse() {
   }
 
   test::expectTrue(max_abs_angle_rad > 0.45,
-                   "full-scale model should not be over-damped into a tiny toy response");
+                   "full-scale model should not be over-damped into a negligible response");
   test::expectTrue(max_abs_angle_rad < 0.80,
                    "full-scale model should stay inside a reasonable walking hip range");
 }

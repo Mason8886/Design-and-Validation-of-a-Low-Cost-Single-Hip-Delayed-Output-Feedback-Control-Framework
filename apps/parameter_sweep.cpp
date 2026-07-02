@@ -24,6 +24,7 @@ constexpr double kMaxStableHipAngleRad = 1.0;
 constexpr double kMaxStableRmsTorqueRateNmPerS = kTorqueRateLimitNmPerS;
 constexpr double kMaxStableSaturationFraction = 0.20;
 constexpr double kMaxPeakAssistToHumanRatio = 0.12;
+constexpr double kMinUsefulPeakAssistToHumanRatio = 0.03;
 
 struct Metrics {
   double max_abs_angle_rad{0.0};
@@ -31,7 +32,10 @@ struct Metrics {
   double peak_assist_to_human_ratio{0.0};
   double rms_torque_rate_nm_s{0.0};
   double saturation_fraction{0.0};
-  bool stable{false};
+  double rate_limited_fraction{0.0};
+  bool safe{false};
+  bool useful{false};
+  bool recommended{false};
 };
 
 double humanTorque(double time_s) {
@@ -44,6 +48,7 @@ double humanTorque(double time_s) {
 }
 
 Metrics runScenario(double gain, double delay_s) {
+  // The default model configuration is tuned for the 60 Nm full-scale walking input.
   dofc::SingleHipModel model;
   dofc::DofcController controller({
       gain,
@@ -60,6 +65,7 @@ Metrics runScenario(double gain, double delay_s) {
   Metrics metrics;
   int samples = 0;
   int saturated_samples = 0;
+  int rate_limited_samples = 0;
   int torque_rate_samples = 0;
   double sum_torque_rate_sq = 0.0;
   std::optional<double> previous_torque;
@@ -81,6 +87,9 @@ Metrics runScenario(double gain, double delay_s) {
     if (limited_torque.saturated) {
       ++saturated_samples;
     }
+    if (limited_torque.rate_limited) {
+      ++rate_limited_samples;
+    }
     if (previous_torque.has_value()) {
       const double torque_rate = (limited_torque.output_nm - *previous_torque) / kDtS;
       sum_torque_rate_sq += torque_rate * torque_rate;
@@ -96,14 +105,20 @@ Metrics runScenario(double gain, double delay_s) {
       torque_rate_samples > 0 ? std::sqrt(sum_torque_rate_sq / torque_rate_samples) : 0.0;
   metrics.saturation_fraction =
       samples > 0 ? static_cast<double>(saturated_samples) / static_cast<double>(samples) : 0.0;
+  metrics.rate_limited_fraction =
+      samples > 0 ? static_cast<double>(rate_limited_samples) / static_cast<double>(samples)
+                  : 0.0;
   metrics.peak_assist_to_human_ratio =
       metrics.peak_abs_torque_nm / kBiologicalHipTorqueAmplitudeNm;
 
-  metrics.stable =
+  metrics.safe =
       metrics.max_abs_angle_rad <= kMaxStableHipAngleRad &&
       metrics.rms_torque_rate_nm_s <= kMaxStableRmsTorqueRateNmPerS &&
       metrics.saturation_fraction <= kMaxStableSaturationFraction &&
       metrics.peak_assist_to_human_ratio <= kMaxPeakAssistToHumanRatio;
+  metrics.useful =
+      metrics.peak_assist_to_human_ratio >= kMinUsefulPeakAssistToHumanRatio;
+  metrics.recommended = metrics.safe && metrics.useful;
 
   return metrics;
 }
@@ -114,12 +129,15 @@ int main() {
   dofc::CsvLogger logger("data/parameter_sweep.csv", {
       "gain",
       "delay_s",
-      "stable",
+      "safe",
+      "useful",
+      "recommended",
       "max_abs_angle_rad",
       "peak_abs_torque_nm",
       "peak_assist_to_human_ratio",
       "rms_torque_rate_nm_s",
       "saturation_fraction",
+      "rate_limited_fraction",
   });
 
   for (double delay_s = 0.05; delay_s <= 0.60; delay_s += 0.05) {
@@ -128,12 +146,15 @@ int main() {
       logger.writeRow({
           gain,
           delay_s,
-          metrics.stable ? 1.0 : 0.0,
+          metrics.safe ? 1.0 : 0.0,
+          metrics.useful ? 1.0 : 0.0,
+          metrics.recommended ? 1.0 : 0.0,
           metrics.max_abs_angle_rad,
           metrics.peak_abs_torque_nm,
           metrics.peak_assist_to_human_ratio,
           metrics.rms_torque_rate_nm_s,
           metrics.saturation_fraction,
+          metrics.rate_limited_fraction,
       });
     }
   }
