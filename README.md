@@ -1,6 +1,6 @@
 # Low-Cost Single-Hip DOFC Control Framework
 
-这是一个从零开始的 C++ 控制系统工程，面向你的毕设题目：
+这是一个从零开始的 C++ 控制系统工程，面向毕设题目：
 
 **Design and Validation of a Low-Cost Single-Hip Delayed Output Feedback Control Framework**
 
@@ -80,3 +80,7 @@ python tools/plot_results.py data/simulation_output.csv --out data/simulation_pl
 - Dual magnetic encoders torque estimation：`SeriesElasticEstimator`
 - walk-stop-walk transition behaviour：`MotionStateDetector`
 - Experimental dataset：`CsvLogger` 输出 CSV
+
+## License
+
+This repository uses the Apache License 2.0, preserved from the GitHub repository.
