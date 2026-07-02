@@ -4,12 +4,14 @@
 
 void testDelayBufferInterpolation();
 void testDofcPureDelay();
+void testFullScaleHumanTorqueModelResponse();
 void testTorqueLimiterMagnitudeAndRate();
 void testSeriesElasticEstimator();
 
 int main() {
   testDelayBufferInterpolation();
   testDofcPureDelay();
+  testFullScaleHumanTorqueModelResponse();
   testTorqueLimiterMagnitudeAndRate();
   testSeriesElasticEstimator();
 

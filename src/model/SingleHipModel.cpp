@@ -5,6 +5,14 @@
 
 namespace dofc {
 
+SingleHipModelConfig SingleHipModelConfig::fullScaleWalking() {
+  return {1.2, 12.0, 100.0};
+}
+
+SingleHipModelConfig SingleHipModelConfig::legacyScaled() {
+  return {0.08, 0.25, 2.0};
+}
+
 SingleHipModel::SingleHipModel(SingleHipModelConfig config) : config_(config) {
   if (!std::isfinite(config_.inertia_kg_m2) ||
       !std::isfinite(config_.damping_nm_s_per_rad) ||

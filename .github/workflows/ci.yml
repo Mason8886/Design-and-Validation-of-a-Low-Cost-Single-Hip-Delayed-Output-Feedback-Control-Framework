@@ -23,3 +23,6 @@ jobs:
 
       - name: Run simulation smoke test
         run: ./build/simulate_dofc --duration 4 --dt 0.002 --output data/ci_simulation.csv
+
+      - name: Run parameter sweep smoke test
+        run: ./build/parameter_sweep

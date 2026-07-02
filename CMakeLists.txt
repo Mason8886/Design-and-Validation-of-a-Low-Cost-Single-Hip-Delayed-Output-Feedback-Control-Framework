@@ -43,6 +43,7 @@ enable_testing()
 add_executable(dofc_tests
   tests/test_delay_buffer.cpp
   tests/test_dofc_controller.cpp
+  tests/test_full_scale_model.cpp
   tests/test_safety_limiter.cpp
   tests/test_series_elastic_estimator.cpp
   tests/test_main.cpp

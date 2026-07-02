@@ -66,10 +66,10 @@ src/core/SafetyLimiter.cpp
 
 它做两件事：
 
-- 转矩限幅：例如最大只允许输出 ±6 Nm
-- 转矩变化率限制：例如每秒最多变化 20 Nm
+- 转矩限幅：默认最大只允许输出 `±6 Nm`
+- 转矩变化率限制：默认每秒最多变化 `20 Nm`
 
-对于低成本硬件，这非常关键。电机、电调、皮带、3D 打印结构都不能承受突然的大转矩。
+这里的 `6 Nm` 是外骨骼执行器的保守部分助力上限，不是人体完整髋关节力矩。当前仿真中的人体髋关节转矩幅值默认是 `60 Nm`，所以外骨骼只提供约 10% 峰值比例的低助力。
 
 ## 5. SeriesElasticEstimator
 
@@ -95,7 +95,17 @@ src/model/SingleHipModel.cpp
 
 作用：单髋关节简化动力学模型。
 
-这个模型用于仿真，不直接代表真实人体。它的价值是让你在没有硬件前先检查控制器逻辑。
+当前默认配置是全尺度步行模型：
+
+```text
+inertia = 1.2 kg*m^2
+damping = 12 Nm*s/rad
+passive stiffness = 100 Nm/rad
+```
+
+这个模型用于仿真，不直接代表真实人体。它的价值是让你在没有硬件前先检查控制器逻辑，并保证 60 Nm 人体髋转矩输入下模型仍然稳定。
+
+代码里也保留了 `SingleHipModelConfig::legacyScaled()`，如果以后需要复现实验早期的小尺度 toy model，可以显式调用它。
 
 ## 7. simulate_dofc
 
@@ -113,11 +123,19 @@ apps/simulate_dofc.cpp
 人体步行转矩 -> 单髋模型 -> 髋角度/角速度 -> DOFC -> 运动状态门控 -> 安全限幅 -> 外骨骼转矩 -> 单髋模型
 ```
 
-输出 CSV 后，你可以画：
+默认输入关系是：
+
+```text
+human biological hip torque amplitude = 60 Nm
+exoskeleton actuator torque limit     = 6 Nm
+```
+
+输出 CSV 后，可以画：
 
 - 髋关节角度
+- 人体生物髋转矩
 - 原始 DOFC 转矩
-- 安全限制后的实际转矩
+- 安全限制后的实际外骨骼转矩
 - walk-stop-walk 时的助力比例
 
 ## 8. parameter_sweep
@@ -136,6 +154,15 @@ apps/parameter_sweep.cpp
 data/parameter_sweep.csv
 ```
 
+当前扫描采用 60 Nm 人体输入和 6 Nm 外骨骼上限，并记录：
+
+- 最大髋角
+- 外骨骼峰值转矩
+- 外骨骼峰值/人体峰值比例
+- RMS 转矩变化率
+- 转矩饱和比例
+- 是否通过全尺度稳定性筛选
+
 这个文件可以帮助你在论文中说明：为什么选择某个增益和延迟作为硬件初始参数。
 
 ## 9. tests
@@ -152,6 +179,7 @@ tests/
 
 - 延迟缓冲插值
 - DOFC 延迟输出
+- 全尺度 60 Nm 人体髋转矩下的单髋模型响应
 - 转矩限幅和变化率限制
 - 串联弹性转矩估计
 

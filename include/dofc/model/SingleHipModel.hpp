@@ -3,9 +3,12 @@
 namespace dofc {
 
 struct SingleHipModelConfig {
-  double inertia_kg_m2{0.08};
-  double damping_nm_s_per_rad{0.25};
-  double passive_stiffness_nm_per_rad{2.0};
+  static SingleHipModelConfig fullScaleWalking();
+  static SingleHipModelConfig legacyScaled();
+
+  double inertia_kg_m2{1.2};
+  double damping_nm_s_per_rad{12.0};
+  double passive_stiffness_nm_per_rad{100.0};
 };
 
 struct SingleHipState {

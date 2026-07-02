@@ -14,6 +14,10 @@
 namespace {
 
 constexpr double kPi = 3.14159265358979323846;
+constexpr double kDefaultDofcGain = 10.0;
+constexpr double kDefaultBiologicalHipTorqueAmplitudeNm = 60.0;
+constexpr double kDefaultPartialAssistTorqueLimitNm = 6.0;
+constexpr double kDefaultTorqueRateLimitNmPerS = 20.0;
 
 double readDoubleArg(const std::vector<std::string>& args,
                      const std::string& name,
@@ -69,11 +73,15 @@ int main(int argc, char** argv) {
 
   const double duration_s = readDoubleArg(args, "--duration", 16.0);
   const double dt_s = readDoubleArg(args, "--dt", 0.002);
-  const double gain = readDoubleArg(args, "--gain", 4.0);
+  const double gain = readDoubleArg(args, "--gain", kDefaultDofcGain);
   const double delay_s = readDoubleArg(args, "--delay", 0.25);
-  const double max_torque_nm = readDoubleArg(args, "--max-torque", 6.0);
-  const double max_rate_nm_s = readDoubleArg(args, "--max-rate", 20.0);
-  const double human_torque_amp_nm = readDoubleArg(args, "--human-torque", 2.5);
+  // 60 Nm represents the simulated biological hip torque amplitude during walking.
+  const double human_torque_amp_nm =
+      readDoubleArg(args, "--human-torque", kDefaultBiologicalHipTorqueAmplitudeNm);
+  // 6 Nm is a conservative actuator limit for partial assistance, not a full hip replacement.
+  const double max_torque_nm =
+      readDoubleArg(args, "--max-torque", kDefaultPartialAssistTorqueLimitNm);
+  const double max_rate_nm_s = readDoubleArg(args, "--max-rate", kDefaultTorqueRateLimitNmPerS);
   const double cadence_hz = readDoubleArg(args, "--cadence", 1.0);
   const std::string output_path =
       readStringArg(args, "--output", "data/simulation_output.csv");
@@ -108,6 +116,7 @@ int main(int argc, char** argv) {
   });
 
   double peak_abs_torque = 0.0;
+  double peak_abs_human_torque = 0.0;
   double max_abs_angle = 0.0;
   double sum_torque_rate_sq = 0.0;
   int torque_rate_samples = 0;
@@ -141,6 +150,7 @@ int main(int argc, char** argv) {
     });
 
     peak_abs_torque = std::max(peak_abs_torque, std::abs(limited_torque.output_nm));
+    peak_abs_human_torque = std::max(peak_abs_human_torque, std::abs(human_torque));
     max_abs_angle = std::max(max_abs_angle, std::abs(state.angle_rad));
     if (previous_torque.has_value()) {
       const double torque_rate = (limited_torque.output_nm - *previous_torque) / dt_s;
@@ -157,7 +167,11 @@ int main(int argc, char** argv) {
 
   std::cout << "Simulation complete\n";
   std::cout << "Output CSV: " << output_path << "\n";
+  std::cout << "Peak absolute biological hip torque: " << peak_abs_human_torque << " Nm\n";
   std::cout << "Peak absolute exoskeleton torque: " << peak_abs_torque << " Nm\n";
+  if (peak_abs_human_torque > 0.0) {
+    std::cout << "Peak assistance ratio: " << peak_abs_torque / peak_abs_human_torque << "\n";
+  }
   std::cout << "Maximum absolute hip angle: " << max_abs_angle << " rad\n";
   std::cout << "RMS torque rate: " << rms_torque_rate << " Nm/s\n";
 
