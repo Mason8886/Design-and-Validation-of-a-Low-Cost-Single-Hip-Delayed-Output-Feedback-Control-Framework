@@ -1,0 +1,13 @@
+build/
+out/
+*.user
+*.suo
+*.vcxproj*
+*.log
+
+data/*.csv
+!data/.gitkeep
+
+__pycache__/
+.pytest_cache/
+.DS_Store
